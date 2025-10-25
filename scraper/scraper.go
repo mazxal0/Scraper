@@ -38,9 +38,11 @@ func Run(urls []string, onResult func()) []Result {
 	for _, url := range urls {
 		wg.Add(1)
 		go func(u string) {
-			defer func() { <-sem }()
+			defer wg.Done()
 			limiter.Wait(context.Background())
+
 			sem <- struct{}{}
+			defer func() { <-sem }()
 
 			status.SetStatus(u, "in_progress")
 

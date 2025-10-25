@@ -15,6 +15,9 @@ func SetStatus(url, status string) {
 func GetStatus(url string) string {
 	mu.Lock()
 	defer mu.Unlock()
+	if s, ok := Statuses[url]; ok {
+		return s.Status
+	}
 	return Statuses[url].Status
 }
 
@@ -63,9 +66,13 @@ func SetDuration(url string, d time.Duration) {
 	Statuses[url].Duration = d
 }
 
-func GetDuration(url string) time.Duration {
+func GetDuration(url string) int64 {
 	mu.Lock()
 	defer mu.Unlock()
 
-	return Statuses[url].Duration
+	if _, ok := Statuses[url]; !ok {
+		return time.Now().Unix()
+	}
+
+	return Statuses[url].Duration.Milliseconds()
 }

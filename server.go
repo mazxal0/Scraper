@@ -5,6 +5,7 @@ import (
 	"awesomeProject1/status"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"sync"
@@ -54,11 +55,20 @@ func RunServer() {
 		statusMutex.Lock()
 		defer statusMutex.Unlock()
 
+		url := c.Query("url")
+		slog.Info(url)
+		if url == "" {
+			c.JSON(http.StatusOK, gin.H{
+				"totalURLs":     totalURLs,
+				"processedURLs": processedURLs,
+				"pending":       totalURLs - processedURLs,
+				"URLS":          status.GetAll(),
+			})
+		}
 		c.JSON(http.StatusOK, gin.H{
-			"totalURLs":     totalURLs,
-			"processedURLs": processedURLs,
-			"pending":       totalURLs - processedURLs,
-			"URLS":          status.GetAll(),
+			"status":        status.GetStatus(url),
+			"time of start": status.GetTimeToAction(url),
+			"duration":      status.GetDuration(url),
 		})
 	})
 

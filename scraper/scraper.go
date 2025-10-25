@@ -38,14 +38,19 @@ func Run(urls []string, onResult func()) []Result {
 	for _, url := range urls {
 		wg.Add(1)
 		go func(u string) {
+			defer func() { <-sem }()
 			limiter.Wait(context.Background())
 			sem <- struct{}{}
 
 			status.SetStatus(u, "in_progress")
+
+			t := time.Now()
+			status.SetTimeToAction(u, t)
+
 			r := fetchUrlWithRetry(u, 3)
 			status.SetStatus(u, "done")
-
-			<-sem
+			duration := time.Since(t)
+			status.SetDuration(u, duration)
 
 			if onResult != nil {
 				onResult()
